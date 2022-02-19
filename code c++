@@ -1,0 +1,136 @@
+#include<bits/stdc++.h>
+#include<conio.h>
+#include<windows.h>
+using namespace std;
+
+vector<vector<char>> background;
+list<pair<int,int>> snake;
+pair<int,int> food;
+int dir,n,score,gameover=0;
+int h=25,w=50;
+void hidecursor()
+{
+   HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+   CONSOLE_CURSOR_INFO info;
+   info.dwSize = 100;
+   info.bVisible = FALSE;
+   SetConsoleCursorInfo(consoleHandle, &info);
+}
+
+void new_food(){
+    food.first=rand()%(h-2)+1;
+    food.second=rand()%(w-2)+1;
+    for(auto a=snake.begin();a!=snake.end();a++){
+        if(food==*a){
+            new_food();
+            break;
+        }
+    }
+    return;
+}
+
+game_over(){
+gameover=1;
+cout<<"GAME OVER";
+}
+void setup(){
+    dir=0;
+    score=0;
+    snake.push_back({12,25});
+    background = vector<vector<char>>(h,vector<char>(w,' '));
+    for(int i=0;i<h;i++){
+        for(int j=0;j<w;j++){
+            if(i==0||j==0||i==h-1||j==w-1){
+                background[i][j]='#';
+            }
+        }
+    }
+    new_food();
+}
+void algorithm(){
+    pair<int,int> head=*snake.begin();
+    if (dir==1){
+        head.first--;
+    }
+    else if(dir==2){
+        head.second++;
+    }
+    else if(dir==3){
+        head.first++;
+    }
+    else if(dir==4){
+        head.second--;
+    }
+    snake.push_front(head);
+    if(head==food){
+        new_food();
+        score+=100;
+    }
+    else{
+        pair<int,int> tail=snake.back();
+        background[tail.first][tail.second]=' ';
+        snake.pop_back();
+    }
+    set<pair<int,int>> check_overlap;
+    for(auto a:snake){
+        if(a.first<1||a.first>(h-2)||a.second<1||a.second>(w-2)){
+            game_over();
+        }
+        check_overlap.insert(a);
+    }
+    if(check_overlap.size()!=snake.size()){
+        game_over();
+    }
+}
+
+void input(){
+    if(_kbhit()){
+        switch (_getch()){
+            case 'w':
+                dir=1;
+                break;
+            case 'd':
+                dir=2;
+                break;
+            case 's':
+                dir=3;
+                break;
+
+            case 'a':
+                dir=4;
+                break;
+            case 'x':
+                game_over();
+                break;
+        }
+    }
+}
+
+
+void draw(){
+    if(gameover){
+        return;
+    }
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 0});
+    cout<<"Score : "<<score<<endl;
+    for(auto a:snake){
+        background[a.first][a.second]='o';
+    }
+    background[food.first][food.second]='@';
+    for(int i=0;i<h;i++){
+        for(int j=0;j<w;j++){
+            cout<<background[i][j];
+        }
+        cout<<endl;
+    }
+}
+int main(){
+    hidecursor();
+    setup();
+    while(!gameover){
+        algorithm();
+        draw();
+        input();
+        Sleep(100);
+    }
+}
